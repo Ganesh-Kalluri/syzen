@@ -6,7 +6,7 @@ sudo apt upgrade -y
 
 # Install Git and clone the repository
 sudo apt install -y git
-git clone https://github.com/Ganesh-Kalluri/delton.git leewise
+git clone https://github.com/Ganesh-Kalluri/ozen.git leewise
 
 # Install Python 3.10.11 from deadsnakes PPA
 sudo apt install -y software-properties-common
@@ -24,8 +24,7 @@ curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.10
 python3.10 -m pip install ipython
 
 # Install PostgreSQL and set up the user
-sudo apt-get update
-sudo apt-get install -y postgresql postgresql-client
+sudo apt install -y postgresql postgresql-client
 sudo -u postgres psql -c "CREATE USER leewise WITH SUPERUSER CREATEDB CREATEROLE LOGIN;"
 
 # Set up the virtual environment and install dependencies
@@ -33,7 +32,6 @@ python3.10 -m venv ~/venv
 source ~/venv/bin/activate
 cd leewise
 sudo apt install -y python3-pip libldap2-dev libpq-dev libsasl2-dev
-sudo apt-get install wkhtmltopdf
 pip install pyjwt
 python3.10 -m pip install -r requirements.txt
 
