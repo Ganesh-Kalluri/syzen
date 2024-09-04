@@ -24,7 +24,10 @@ curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.10
 python3.10 -m pip install ipython
 
 # Install PostgreSQL and set up the user
-sudo apt install -y postgresql postgresql-client
+wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+sudo apt-get install -y postgresql-16 postgresql-client-16
 sudo -u postgres psql -c "CREATE USER leewise WITH SUPERUSER CREATEDB CREATEROLE LOGIN;"
 
 # Set up the virtual environment and install dependencies
@@ -32,6 +35,7 @@ python3.10 -m venv ~/venv
 source ~/venv/bin/activate
 cd leewise
 sudo apt install -y python3-pip libldap2-dev libpq-dev libsasl2-dev
+sudo apt-get install wkhtmltopdf
 pip install pyjwt
 python3.10 -m pip install -r requirements.txt
 
