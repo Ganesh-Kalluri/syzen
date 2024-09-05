@@ -6,7 +6,7 @@ sudo apt upgrade -y
 
 # Install Git and clone the repository
 sudo apt install -y git
-git clone https://github.com/Ganesh-Kalluri/ozen.git leewise
+git clone https://github.com/Ganesh-Kalluri/delton.git leewise
 
 # Install Python 3.10.11 from deadsnakes PPA
 sudo apt install -y software-properties-common
