@@ -34,6 +34,7 @@ cd leewise
 sudo apt install -y python3-pip libldap2-dev libpq-dev libsasl2-dev
 pip install pyjwt
 sudo apt install wkhtmltopdf
+pip3 install pdfminer.six
 python3.10 -m pip install -r requirements.txt
 
 # Open port for Leewise
