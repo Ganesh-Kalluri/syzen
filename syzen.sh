@@ -36,7 +36,7 @@ pip install pyjwt
 sudo apt install wkhtmltopdf
 python3.10 -m pip install -r requirements.txt
 
-# Open port for Odoo
+# Open port for Leewise
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8069 -j ACCEPT
 
 # Nginx setup
