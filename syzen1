@@ -42,13 +42,16 @@ pip install pyjwt
 sudo apt install wkhtmltopdf
 python3.12 -m pip install -r requirements.txt
 
-# Open ports
+# Open ports for HTTP, PostgreSQL, Leewise, and Email services
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8069 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8072 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 5432 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 53 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 25 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 465 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 587 -j ACCEPT
 
 # Install and configure Nginx
 sudo apt install nginx -y
@@ -62,7 +65,7 @@ sudo rm /etc/nginx/sites-available/default
 
 # Create leewise Nginx config
 cat <<EOL | sudo tee /etc/nginx/sites-available/leewise.conf
-map $http_upgrade $connection_upgrade {
+map \$http_upgrade \$connection_upgrade {
   default upgrade;
   ''      close;
 }
