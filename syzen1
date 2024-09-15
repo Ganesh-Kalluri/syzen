@@ -40,6 +40,8 @@ cd leewise
 sudo apt install -y python3-pip libldap2-dev libpq-dev libsasl2-dev
 pip install pyjwt
 sudo apt install wkhtmltopdf
+sudo apt install -y python3-pip
+pip3 install pdfminer.six
 python3.12 -m pip install -r requirements.txt
 
 # Open ports for HTTP, PostgreSQL, Leewise, and Email services
