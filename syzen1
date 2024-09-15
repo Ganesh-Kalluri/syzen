@@ -154,10 +154,6 @@ sudo ln -s /etc/nginx/sites-available/leewise.conf /etc/nginx/sites-enabled/leew
 sudo nginx -t
 sudo service nginx restart
 
-# Install Certbot for SSL
-sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d www.leewise.in
-
 # Create Leewise service file
 sudo nano /etc/systemd/system/leewise.service
 cat <<EOL | sudo tee /etc/systemd/system/leewise.service
@@ -176,6 +172,10 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOL
+
+# Install Certbot for SSL
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d www.leewise.in
 
 # Reload systemd, enable and start the service
 sudo systemctl daemon-reload
