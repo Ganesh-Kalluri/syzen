@@ -1,1 +1,8 @@
+sudo apt update
+sudo apt upgrade
+sudo apt full-upgrade
+sudo reboot
+ingress rules 0.0.0.0/0   8069,8072,5432,443,80,53,25,465,587,143,993,110,995 - TCP
+egress rules 53 - UDP
+
 curl -O https://raw.githubusercontent.com/Ganesh-Kalluri/syzen/main/syzen.sh && chmod +x syzen.sh && ./syzen.sh
