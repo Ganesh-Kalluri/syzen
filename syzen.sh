@@ -59,106 +59,12 @@ sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 993 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 110 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 995 -j ACCEPT
 
-# Install and configure Nginx
-sudo apt install nginx -y
-sudo ufw allow 'Nginx Full'
-sudo ufw allow OpenSSH
-sudo ufw enable
+sudo ufw allow 80/tcp  # Nginx HTTP
+sudo ufw allow 443/tcp # Nginx HTTPS
+sudo ufw allow 8069/tcp # Odoo web traffic
+sudo ufw allow 8072/tcp # Odoo long-polling service
 
-# Remove default site configs
-sudo rm /etc/nginx/sites-enabled/default
-sudo rm /etc/nginx/sites-available/default
-
-# Create leewise Nginx config
-cat <<EOL | sudo tee /etc/nginx/sites-available/leewise.conf
-map $http_upgrade $connection_upgrade {
-  default upgrade;
-  ''      close;
-}
-server {
-    server_name www.leewise.in;
-
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Real-IP $remote_addr;
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-XSS-Protection "1; mode=block";
-    proxy_set_header X-Client-IP $remote_addr;
-
-    access_log /var/log/nginx/leewise-access.log;
-    error_log /var/log/nginx/leewise-error.log;
-
-    proxy_buffers 16 64k;
-    proxy_buffer_size 128k;
-
-    proxy_read_timeout 900s;
-    proxy_connect_timeout 900s;
-    proxy_send_timeout 900s;
-
-    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503;
-
-    types {
-        text/less less;
-        text/scss scss;
-    }
-
-    gzip on;
-    gzip_min_length 1100;
-    gzip_buffers 4 32k;
-    gzip_types text/css text/less text/plain text/xml application/xml application/json application/javascript application/pdf image/jpeg image/png;
-    gzip_vary on;
-    client_header_buffer_size 4k;
-    large_client_header_buffers 4 64k;
-    client_max_body_size 0;
-
-    location / {
-        proxy_pass http://localhost:8069;
-        proxy_redirect off;
-    }
-
-    location /websocket {
-         proxy_pass http://localhost:8072;
-         proxy_set_header Upgrade $http_upgrade;
-         proxy_set_header Connection $connection_upgrade;
-         proxy_set_header X-Forwarded-Host $host;
-         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-         proxy_set_header X-Forwarded-Proto $scheme;
-         proxy_set_header X-Real-IP $remote_addr;
-   }
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-        expires 2d;
-        proxy_pass http://localhost:8069;
-        add_header Cache-Control "public, no-transform";
-    }
-
-    location ~ /[a-zA-Z0-9_-]*/static/ {
-        proxy_cache_valid 200 302 60m;
-        proxy_cache_valid 404 1m;
-        proxy_buffering on;
-        expires 864000;
-        proxy_pass http://localhost:8069;
-    }
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/www.leewise.in/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/www.leewise.in/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-}
-
-server {
-    listen 80;
-    server_name www.leewise.in;
-    return 301 https://$host$request_uri; # Redirect HTTP to HTTPS
-}
-EOL
-
-# Enable leewise Nginx config
-sudo ln -s /etc/nginx/sites-available/leewise.conf /etc/nginx/sites-enabled/leewise.conf
-sudo nginx -t
-sudo service nginx restart
+python3.10 leewise-bin -c debian/leewise.conf
 
 # Create Leewise service file
 sudo nano /etc/systemd/system/leewise.service
@@ -303,7 +209,130 @@ sudo systemctl restart postgresql
 
 echo "pg_hba.conf has been updated and PostgreSQL restarted."
 
+# Install and configure Nginx
+sudo apt install nginx -y
+sudo ufw allow 'Nginx Full'
+sudo ufw allow OpenSSH
+sudo ufw enable
 
+# Remove default site configs
+sudo rm /etc/nginx/sites-enabled/default
+sudo rm /etc/nginx/sites-available/default
+
+# Create leewise Nginx config
+cat <<EOL | sudo tee /etc/nginx/sites-available/leewise.conf
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+server {
+    server_name www.leewise.in;
+
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    proxy_set_header X-Client-IP $remote_addr;
+
+    access_log /var/log/nginx/leewise-access.log;
+    error_log /var/log/nginx/leewise-error.log;
+
+    proxy_buffers 16 64k;
+    proxy_buffer_size 128k;
+
+    proxy_read_timeout 900s;
+    proxy_connect_timeout 900s;
+    proxy_send_timeout 900s;
+
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503;
+
+    types {
+        text/less less;
+        text/scss scss;
+    }
+
+    gzip on;
+    gzip_min_length 1100;
+    gzip_buffers 4 32k;
+    gzip_types text/css text/less text/plain text/xml application/xml application/json application/javascript application/pdf image/jpeg image/png;
+    gzip_vary on;
+    client_header_buffer_size 4k;
+    large_client_header_buffers 4 64k;
+    client_max_body_size 0;
+
+    location / {
+        proxy_pass http://localhost:8069;
+        proxy_redirect off;
+    }
+
+    location /websocket {
+         proxy_pass http://localhost:8072;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection $connection_upgrade;
+         proxy_set_header X-Forwarded-Host $host;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header X-Forwarded-Proto $scheme;
+         proxy_set_header X-Real-IP $remote_addr;
+   }
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires 2d;
+        proxy_pass http://localhost:8069;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~ /[a-zA-Z0-9_-]*/static/ {
+        proxy_cache_valid 200 302 60m;
+        proxy_cache_valid 404 1m;
+        proxy_buffering on;
+        expires 864000;
+        proxy_pass http://localhost:8069;
+    }
+
+#     listen 443 ssl; # managed by Certbot
+#     ssl_certificate /etc/letsencrypt/live/www.leewise.in/fullchain.pem; # managed by Certbot
+#     ssl_certificate_key /etc/letsencrypt/live/www.leewise.in/privkey.pem; # managed by Certbot
+#     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+#     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+# }
+
+# server {
+#     listen 80;
+#     server_name www.leewise.in;
+#     return 301 https://$host$request_uri; # Redirect HTTP to HTTPS
+# }
+EOL
+
+# Enable leewise Nginx config
+sudo ln -s /etc/nginx/sites-available/leewise.conf /etc/nginx/sites-enabled/leewise.conf
+sudo nginx -t
+sudo service nginx restart
+
+# Create Leewise service file
+sudo nano /etc/systemd/system/leewise.service
+cat <<EOL | sudo tee /etc/systemd/system/leewise.service
+[Unit]
+Description=Leewise Service
+Requires=postgresql.service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/
+ExecStart=/home/ubuntu/venv/bin/python3 /home/ubuntu/leewise/leewise-bin -c /home/ubuntu/leewise/debian/leewise.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Enable leewise Nginx config
+sudo ln -s /etc/nginx/sites-available/leewise.conf /etc/nginx/sites-enabled/leewise.conf
+sudo nginx -t
+sudo service nginx restart
 
 # Install Certbot for SSL
 sudo apt install certbot python3-certbot-nginx -y
