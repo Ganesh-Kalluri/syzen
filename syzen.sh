@@ -64,7 +64,8 @@ sudo ufw allow 443/tcp # Nginx HTTPS
 sudo ufw allow 8069/tcp # Odoo web traffic
 sudo ufw allow 8072/tcp # Odoo long-polling service
 
-python3.10 leewise-bin -c debian/leewise.conf
+# python3.10 leewise-bin -c debian/leewise.conf
+
 
 # Create Leewise service file
 sudo nano /etc/systemd/system/leewise.service
@@ -209,6 +210,8 @@ sudo systemctl restart postgresql
 
 echo "pg_hba.conf has been updated and PostgreSQL restarted."
 
+
+
 # Install and configure Nginx
 sudo apt install nginx -y
 sudo ufw allow 'Nginx Full'
@@ -303,30 +306,6 @@ server {
 #     server_name www.leewise.in;
 #     return 301 https://$host$request_uri; # Redirect HTTP to HTTPS
 # }
-EOL
-
-# Enable leewise Nginx config
-sudo ln -s /etc/nginx/sites-available/leewise.conf /etc/nginx/sites-enabled/leewise.conf
-sudo nginx -t
-sudo service nginx restart
-
-# Create Leewise service file
-sudo nano /etc/systemd/system/leewise.service
-cat <<EOL | sudo tee /etc/systemd/system/leewise.service
-[Unit]
-Description=Leewise Service
-Requires=postgresql.service
-After=network.target
-
-[Service]
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/
-ExecStart=/home/ubuntu/venv/bin/python3 /home/ubuntu/leewise/leewise-bin -c /home/ubuntu/leewise/debian/leewise.conf
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
 EOL
 
 # Enable leewise Nginx config
