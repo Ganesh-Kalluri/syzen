@@ -292,7 +292,7 @@ server {
         expires 864000;
         proxy_pass http://localhost:8069;
     }
-
+}
 #     listen 443 ssl; # managed by Certbot
 #     ssl_certificate /etc/letsencrypt/live/www.leewise.in/fullchain.pem; # managed by Certbot
 #     ssl_certificate_key /etc/letsencrypt/live/www.leewise.in/privkey.pem; # managed by Certbot
